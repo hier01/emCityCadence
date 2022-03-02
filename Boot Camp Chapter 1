@@ -1,0 +1,45 @@
+Boot Camper:  Matt Hodges, aka hier01
+QUESTS
+
+Chapter 1 -------------------
+
+Day 1
+
+Explain what the Blockchain is:
+
+It's a kind of database where the records are added in sequence and prior records can't be changed.  It's decentralized, meaning many copies of it are spread all over the place, so no single agent can mess with it without everybody knowing.  It can be public or private, but public is what we like.  
+
+
+
+Explain what a Smart Contract is:
+
+It's a lump of code that's stored on a blockchain (so it can't be messed with) and run by a virtual machine built into the blockchain (so it also can't be messed with).  Many nodes that run copies of the blockchain have the ability to run smart contracts, with the ability to read and write results into the blockchain, and they all (should) produce identical results.
+
+
+
+Explain the difference between a script and a transaction:
+
+A script is a program that doesn't change the data on a blockchain, e.g. reading data (usually free).  A transaction creates or modifies blockchain data (not free).
+
+
+
+
+Day 2
+
+What are the 5 Cadence Programming Language Pillars?
+
+Security, Clarity, Approachability, Experience, and Resource Oriented.  
+
+
+Why could the 5 Pillars be useful:
+
+Every successful programming language (maybe apart from PROLOG) aims for the first 4 Pillars, because languages that try for an insecure, hard-to-read language with odd-ball syntax with no error messages don't tend to last.  So these are important, but they don't differentiate Cadence, and they may not even be achieved all that well yet.  Somebody important--I think his name was Jacob Tucker--already taught me that Cadence is NOT 100% secure and I still have be super-careful not to do massive damage, even following the "official" tutorials.  Also, heavily-typed languages are useful but not the most "approachable."  I mean, look at this thing:
+
+  let collection = getAccount(from).getCapability(KittyItems.CollectionPublicPath)!.borrow<&KittyItems.Collection{KittyItems.KittyItemsCollectionPublic}>() ?? panic("Couldn't get collection")
+
+On the other hand, the Resources in Cadence are pretty unique and interesting in the context of blockchain.
+
+My question is how much of Cadence--especially Resources--stems from the decision NOT to have the contract serve as a centralized accounting agency as with ERC-20 and ERC-721, where the token contract maintains a list of every owner and their balance.  Putting "stuff" directly into Vaults on the User Account requires a different authentication mechanism, which I believe is "borrowing Resources"?  This major difference I think is highly important and should be presented as a big differentiator for Cadence.
+
+
+Thanks for the course!  It's great to be part of a group.
