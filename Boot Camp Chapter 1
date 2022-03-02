@@ -42,10 +42,10 @@ Security, Clarity, Approachability, Experience, and Resource Oriented.
 Why could the 5 Pillars be useful:
 
 Every successful programming language (maybe apart from PROLOG) aims for the first 4 Pillars.
-Languages trying for insecure, hard-to-read code with weird syntax with no error messages don't last.  
+Languages that try for insecure, hard-to-read code with weird syntax with no error messages don't last.  
 So these 4 are important, but they don't differentiate Cadence.
-And they may not even be achieved all that well...yet.  
-A guy--I think his name was Jacob Tucker--already taught me that Cadence is NOT 100% secure.
+And they may not even be achieved all that well...maybe not yet, anyway. 
+Somebody--I think his name was Jacob Tucker--already taught me that Cadence is NOT 100% secure.
 I still have the power to do massive damage, even following the "official" tutorials.
 Also, heavily-typed languages are useful but "approachable"?  I mean, look at this stuff:
 
