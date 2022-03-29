@@ -1,0 +1,206 @@
+Boot Camper:  Matt Hodges, aka hier01
+
+CHAPTER 2 QUESTS
+
+-----------------------  DAY 1 --(done)----------------------
+
+Q1.  In words, list 3 reasons why structs are different from resources.
+
+		1)  Only one exists (cannot be copied)
+		2)  MUST be used (moved or destroyed)
+		3)  Can only be used ONCE.
+
+Q2.  Describe a situation where a resource might be better to use than a struct.
+
+		When representing ownership of something, such as an NFT, where duplicate records should not be made, and the record should not be lost.  
+
+Q3.  What is the keyword to make a new resource?
+
+		create
+
+Q4.  Can a resource be created in a script or transaction (assuming there isn't a public function to create one)?
+
+		no
+
+Q5.  What is the type of the resource below?
+
+pub resource Jacob {
+
+}
+
+        It's a Jacob
+
+
+Q6.  Let's play the "I Spy" game from when we were kids. I Spy 4 things wrong with this code. Please fix them.
+pub contract Test {
+
+    // Hint: There's nothing wrong here ;)
+    pub resource Jacob {
+        pub let rocks: Bool
+        init() {
+            self.rocks = true
+        }
+    }
+
+    pub fun createJacob(): @Jacob { // there is 1 here:  need the @
+        let myJacob: @Jacob <- create Jacob() // there are 2 here:  need create keyword, and <- instead of =; type declaration @Jacob optional   
+        return <- myJacob // there is 1 here:  need the <- move operator
+    }
+}
+
+
+
+
+-----------------------  DAY 2 ----(done)--------------------
+
+
+Q1  Explain why we wouldn't call changeGreeting in a script.
+
+	Changes blockchain data--can't do that via script.
+
+
+Q2  What does the AuthAccount mean in the prepare phase of the transaction?
+
+	AuthAccount is the authorized user account who is executing the transaction.
+
+
+Q3  What is the difference between the prepare phase and the execute phase in the transaction?
+
+	Prepare phase checks authorizations and existence of all necessary resources; also, it handles any storage or linking related stuff that requires "AuthAccount" access.  
+	Assuming all is good, the execute phase does the work.
+
+
+Q4  Add:
+
+A variable named myNumber that has type Int (set it to 0 when the contract is deployed)
+A function named updateMyNumber that takes in a new number named newNumber as a parameter that has type Int and updates myNumber to be newNumber
+
+pub contract HelloWorld {
+
+    pub var greeting: String
+    pub var myNumber: Int
+
+    pub fun changeGreeting(newGreeting: String) {
+        self.greeting = newGreeting
+    }
+    pub fun updateNumber(newNumber: Int) {
+        self.myNumber = newNumber
+    }
+
+    init() {
+        self.greeting = "Hello, World!"
+        self.myNumber = 0
+    }
+}
+
+
+Add a script that reads myNumber from the contract
+
+
+	import HelloWorld from 0x02
+
+	pub fun main(): Int {
+	  return HelloWorld.myNumber
+	}
+
+Add a transaction that takes in a parameter named myNewNumber and passes it into the updateMyNumber function. Verify that your number changed by running the script again.
+
+
+	import HelloWorld from 0x02
+
+	transaction(){
+	  prepare( signer: AuthAccount ){
+	  }
+	  execute{
+	    HelloWorld.updateNumber( newNumber: 4 )
+	  }
+	}
+
+
+
+
+-----------------------  DAY 3 ----(done)--------------------
+
+Q1  In a script, initialize an array (that has length == 3) of your favourite people, represented as Strings, and log it.
+
+  pub fun main(){
+      let ppl: [String] = ['Kim', 'Khloe','Kourtney']
+  }
+
+Q2  In a script, initialize a dictionary that maps the Strings Facebook, Instagram, Twitter, YouTube, Reddit, and LinkedIn to a UInt64 that represents the order in which you use them from most to least. 
+
+  pub fun main(){
+    let social: { String: UInt40 } = { 'Reddit': 3.0, 'Twitter':1.0, 'YouTube':1.0, 'LinkedIn': 0.5, 'Instagram': 0.01, 'Facebook': 0.0000001 }
+  }
+
+
+Q3  Explain what the force unwrap operator ! does, with an example different from the one I showed you (you can just change the type).
+
+	a.  It works on an Optional: if the Optional has a value the ! coerces it to the value's non-optional type, but if the Optional is nil, it panics and aborts.
+	b.  Also appears in the <-! operator, where if a Resource already exists at the target it panics; otherwise it moves the Resource.
+
+	Example:
+	var kim: String? = "Kim"
+    var unwrappedKim = kim!
+
+
+Q4  Using this picture below, explain...
+
+	a.  What the error message means:  It says the value is supposed to be a String but it's a String Optional
+	b.  Why we're getting this error:  It's because values of a Dict are Optional, since they may or may not be nil
+	c.  How to fix it:  Need to coerce the String Optional to a String via the !, i.e.:  return thing[0x03]!
+
+
+
+-----------------------  DAY 4 --------(done)----------------
+
+
+Q1.  Deploy a new contract that has a Struct of your choosing inside of it (must be different than Profile).
+Q2.  Create a dictionary or array that contains the Struct you defined.
+Q3.  Create a function to add to that array/dictionary.
+
+
+	pub contract Royalties {
+
+		pub let cuts: [Royalty]
+
+		pub struct Royalty {
+			pub let description: String
+			pub let cut: UFix64
+			pub let wallet: Capability<&AnyResource{FungibleToken.Receiver}>
+
+			init( _id: String, _description: String, _cut: UFix64, _wallet: Capability<&AnyResource{FungibleToken.Receiver}> ){
+				self.description = _description
+				self.cut = _cut
+				self.wallet = _wallet
+			}
+		}
+
+		pub fun addRoyalty( desc:String, cut:UFix64, wally: Capability<&AnyResource{FungibleToken.Receiver}>){
+			self.addCut = Royalty( _description: desc, _cut: cut, _wallet: wally )
+		}
+
+		init(){
+			cuts = {}
+		} 
+	}
+
+
+
+Q4.  Add a transaction to call that function in step 3.
+
+	import Royalties from 0x01
+	transaction( desc:String, cut:UFix64, wally: Capability<&AnyResource{FungibleToken.Receiver}> ){
+		prepare(signer: AuthAccount){ }
+		execute{
+			Royalties.addCut( desc: "artist", cut: 0.05, wally: )
+		}
+	}
+
+
+Q5.  Add a script to read the Struct you defined.
+
+	import Royalties from 0x01
+	pub fun main(){
+	
+	}

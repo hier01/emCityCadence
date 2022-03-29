@@ -1,0 +1,381 @@
+
+
+---------------  DAY 1 -----(done)----------------------------------
+
+1.  Describe what an event is, and why it might be useful to a client.
+
+An event is a class of object written into the blockchain; it's used to record events of interest that a contract or transaction may generate, such as minting, offer for sale, purchases, etc.
+
+
+2.  Deploy a contract with an event in it, and emit the event somewhere else in the contract indicating that it happened.
+
+	pub contract Balloons {
+
+	  pub event BalloonPopped( id: UInt64 )
+
+	  pub resource Balloon {
+	    pub let id: UInt64
+	    init() {
+	      self.id = self.uuid
+	    }
+	  }
+
+	  pub fun needle( b: @Balloon ) {
+	  	emit BalloonPopped( id: b.id )
+	    destroy b
+	  }
+	}
+
+
+
+3.  Using the contract in step 2), add some pre conditions and post conditions to your contract to get used to writing them out.
+
+
+	pub contract Balloons {
+
+	  pub event BalloonPopped( id: UInt64 )
+
+	  pub resource Balloon {
+	    pub let id: UInt64
+	    pub let color: String
+	    init( c:String ) {
+	      self.id = self.uuid
+	      self.color = c
+	    }
+	  }
+
+	  pub fun needle( b: @Balloon ): String {
+	    pre{ b.id >= 0 : "Busted!" }
+	    post{ c != "Red" : "Panic! My red balloon!" }
+	    let c = b.color
+	  	emit BalloonPopped( id: b.id )
+	    destroy b
+	    return c
+	  }
+
+	  pub fun blowballoon( color: String ): @Balloon {
+	    let b: @Balloon <- create Balloon( c:color )
+	    return <- b
+	  }
+	}
+
+
+
+	import Balloons from 0x05
+
+	transaction {
+
+	  prepare(acct: AuthAccount) {}
+
+	  execute {
+	    let b <- Balloons.blowballoon( color: "Red")
+	    let c = Balloons.needle( b: <-b  )
+	    log(c)
+	  }
+	}
+
+
+
+
+4.  For each of the functions below (numberOne, numberTwo, numberThree), follow the instructions.
+
+	1:  yes, it should log 'Jacob' since it has length == 5
+	2:  yes, it should pass the pre, then concat and return 'Jacob Tucker', then pass the post
+	3:  no, it won't pass the post.  Before(self.number) is 1 after the function runs and increments it from 0.  Result is 1.  The post compares this with result + 1 and fails.
+
+	pub contract Test {
+
+	  // TODO
+	  // Tell me whether or not this function will log the name.
+	  // name: 'Jacob'
+	  pub fun numberOne(name: String) {
+	    pre {
+	      name.length == 5: "This name is not cool enough."
+	    }
+	    log(name)
+	  }
+
+	  // TODO
+	  // Tell me whether or not this function will return a value.
+	  // name: 'Jacob'
+	  pub fun numberTwo(name: String): String {
+	    pre {
+	      name.length >= 0: "You must input a valid name."
+	    }
+	    post {
+	      result == "Jacob Tucker"
+	    }
+	    return name.concat(" Tucker")
+	  }
+
+	  pub resource TestResource {
+	    pub var number: Int
+
+	    // TODO
+	    // Tell me whether or not this function will log the updated number.
+	    // Also, tell me the value of `self.number` after it's run.
+	    pub fun numberThree(): Int {
+	      post {
+	        before(self.number) == result + 1
+	      }
+	      self.number = self.number + 1
+	      return self.number
+	    }
+
+	    init() {
+	      self.number = 0
+	    }
+
+	  }
+
+	}
+
+
+	------------------------  DAY 2 -----(done)-----------------------------------
+
+1.  Explain why standards can be beneficial to the Flow ecosystem.
+
+Oh man, it can save a ton of work if you're trying to interoperate, like building an NFT marketplace with multiple assets.
+
+
+
+2.  What is YOUR favourite food?
+
+Excellent query!  Possibly the most challenging of all!  For me it's buttered croissants with Ethiopian coffee...at least for the next 2 hours.
+
+
+
+3.  Please fix this code (Hint: There are two things wrong):
+
+	Thing 1:  I think maybe the pub fun updateNumber() in the implementing contract should implement the pre and post defined in the interface
+	Thing 2:  IStuff is defined in both contracts.  The implementing contract should reference the interface's version as: pub resource Stuff: ITest.IStuff {...
+
+
+The contract interface:
+
+pub contract interface ITest {
+  pub var number: Int
+  
+  pub fun updateNumber(newNumber: Int) {
+    pre {
+      newNumber >= 0: "We don't like negative numbers for some reason. We're mean."
+    }
+    post {
+      self.number == newNumber: "Didn't update the number to be the new number."
+    }
+  }
+
+  pub resource interface IStuff {
+    pub var favouriteActivity: String
+  }
+
+  pub resource Stuff {
+    pub var favouriteActivity: String
+  }
+}
+
+
+The implementing contract:
+
+pub contract Test {
+  pub var number: Int
+  
+  pub fun updateNumber(newNumber: Int) {
+    self.number = 5
+  }
+
+  pub resource interface IStuff {
+    pub var favouriteActivity: String
+  }
+
+  pub resource Stuff: IStuff {
+    pub var favouriteActivity: String
+
+    init() {
+      self.favouriteActivity = "Playing League of Legends."
+    }
+  }
+
+  init() {
+    self.number = 0
+  }
+}
+
+
+--------------------------  DAY 3 -----------------------------
+
+1.  What does "force casting" with as! do? Why is it useful in our Collection?
+
+	Force casting, or down-casting, casts a more general type into a more specific type.  It's used to access features of the Collection defined in our contract that are not specified in the more general interface of the NonFungibleToken.CollectionPublic, for example.
+
+
+2.  What does auth do? When do we use it?
+
+	Auth is a keyword that can be applied to a reference to get an "authorized reference."  In order to downcast from a general type to a contract-specific type via as!, you need a reference that's authorized by the owner of the contract.
+
+
+3.  This last quest will be your most difficult yet. Take this contract:...and add a function called borrowAuthNFT just like we did in the section called "The Problem" above. Then, find a way to make it publically accessible to other people so they can read our NFT's metadata. Then, run a script to display the NFTs metadata for a certain id.
+
+
+//
+//  0.  Need to deploy the NonFungibleToken contract on some account, e.g. 0x03
+// 
+import NonFungibleToken from 0x03
+
+pub contract CryptoPoops: NonFungibleToken {
+  pub var totalSupply: UInt64
+
+  pub event ContractInitialized()
+  pub event Withdraw(id: UInt64, from: Address?)
+  pub event Deposit(id: UInt64, to: Address?)
+
+  pub resource NFT: NonFungibleToken.INFT {
+    pub let id: UInt64
+
+    pub let name: String
+    pub let favouriteFood: String
+    pub let luckyNumber: Int
+
+    init(_name: String, _favouriteFood: String, _luckyNumber: Int) {
+      self.id = self.uuid
+
+      self.name = _name
+      self.favouriteFood = _favouriteFood
+      self.luckyNumber = _luckyNumber
+    }
+  }
+
+//
+// 1.  Need to add a CollectionPublic Interface to control access to the Collection
+//     Has to expose borrowAuthNFT()
+//
+  pub resource interface CollectionPublic {
+    pub fun deposit( token: @NonFungibleToken.NFT )
+    pub fun getIDs(): [UInt64]
+    pub fun borrowAuthNFT(id: UInt64): &NFT
+  }
+
+//
+// 2.  The Collection has to implement the CollectionPublic interface ----------------------------------------------------|
+//                                                                                                                        v
+  pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, CollectionPublic {
+    pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
+
+    pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
+      let nft <- self.ownedNFTs.remove(key: withdrawID) 
+            ?? panic("This NFT does not exist in this Collection.")
+      emit Withdraw(id: nft.id, from: self.owner?.address)
+      return <- nft
+    }
+
+    pub fun deposit(token: @NonFungibleToken.NFT) {
+      let nft <- token as! @NFT
+      emit Deposit(id: nft.id, to: self.owner?.address)
+      self.ownedNFTs[nft.id] <-! nft
+    }
+
+    pub fun getIDs(): [UInt64] {
+      return self.ownedNFTs.keys
+    }
+
+    pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
+      return &self.ownedNFTs[id] as &NonFungibleToken.NFT
+    }
+
+//
+//  3.  Need a borrowAuthNFT function that can downcast from NonFungibleToken.NFT to contract's NFT, to get the attributes
+//
+	pub fun borrowAuthNFT(id: UInt64): &NFT {
+	  let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
+	  return ref as! &NFT
+	}
+
+
+    init() {
+      self.ownedNFTs <- {}
+    }
+
+    destroy() {
+      destroy self.ownedNFTs
+    }
+  }
+
+  pub fun createEmptyCollection(): @NonFungibleToken.Collection {
+    return <- create Collection()
+  }
+
+  pub resource Minter {
+
+    pub fun createNFT(name: String, favouriteFood: String, luckyNumber: Int): @NFT {
+      return <- create NFT(_name: name, _favouriteFood: favouriteFood, _luckyNumber: luckyNumber)
+    }
+
+    pub fun createMinter(): @Minter {
+      return <- create Minter()
+    }
+  }
+
+  init() {
+    self.totalSupply = 0
+    emit ContractInitialized()
+    self.account.save(<- create Minter(), to: /storage/Minter)
+  }
+}
+
+
+//
+//  4.  Need a transaction to create a Collection on a recipient account
+//
+import CryptoPoops from 0x04
+import NonFungibleToken from 0x03
+transaction(){
+  prepare( signer: AuthAccount){
+    let c:@NonFungibleToken.Collection <- CryptoPoops.createEmptyCollection()
+    signer.save( <- c, to: /storage/myCrPoops )
+    signer.link<&CryptoPoops.Collection{CryptoPoops.CollectionPublic}>(/public/myCrPoops, target: /storage/myCrPoops )
+  }
+  execute{ }
+}
+
+
+//
+//  5.  Need a transaction to mint NFTs into the recipient's collection
+//
+import CryptoPoops from 0x04
+transaction(recipient: Address) {
+
+  prepare(signer: AuthAccount) {
+    let recipientsCollection = getAccount(recipient).getCapability(/public/myCrPoops)
+                                  .borrow<&CryptoPoops.Collection{CryptoPoops.CollectionPublic}>()
+                                  ?? panic("The recipient does not have a Collection.")
+
+    let minter = signer.borrow<&CryptoPoops.Minter>(from: /storage/Minter)
+                    ?? panic("This signer is not the one who deployed the contract.")
+
+    recipientsCollection.deposit(token: <- minter.createNFT(name: "Cat", favouriteFood: "Milk", luckyNumber: 7))
+  }
+  execute{ }
+}
+
+//
+//  6.  A script that reads the recipient's NFT IDs
+//
+import CryptoPoops from 0x04
+pub fun main(addr: Address): [UInt64] {
+  let collection = getAccount(addr).getCapability(/public/myCrPoops).borrow<&CryptoPoops.Collection{CryptoPoops.CollectionPublic}>()
+      ?? panic("YOW! No Collection!")
+  return collection.getIDs()
+}
+
+//
+//  7.  A script that can borrowAuthNFT and log NFT attributes
+//
+import CryptoPoops from 0x04
+
+pub fun main( addr: Address, id: UInt64 ): [String] {
+    let coll = getAccount(addr).getCapability(/public/myCrPoops).borrow<&CryptoPoops.Collection{CryptoPoops.CollectionPublic}>()
+        ?? panic("Ouch!")
+    let nft = coll.borrowAuthNFT( id: id )
+    let attribs:[String] = [ nft.name, nft.favouriteFood, nft.luckyNumber.toString() ]
+    return attribs
+}

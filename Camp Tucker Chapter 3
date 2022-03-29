@@ -1,0 +1,245 @@
+Boot Camper:  Matt Hodges, aka hier01
+
+CHAPTER 3 QUESTS
+
+---------------------  DAY 1 --(done)-----------------------------------
+
+1.  In words, list 3 reasons why structs are different from resources.
+
+    a.)  Structs can be copied, where resources are one-and-only-one
+    b.)  Structs can be reused, where resources are single-use only;
+    c.)  Structs can be abandoned, where resources must be moved or destroyed.
+
+
+2.  Describe a situation where a resource might be better to use than a struct.
+
+    An NFT, for example, is a one-of-a-kind asset that shouldn't be lost or duplicated.
+
+
+
+3.  What is the keyword to make a new resource?
+
+    create
+
+
+4.  Can a resource be created in a script or transaction (assuming there isn't a public function to create one)?
+
+    No.  You can request/borrow a reference to one, but can't create one.
+
+
+
+5.  What is the type of the resource below?
+
+pub resource Jacob {
+
+}
+
+   It's an @Jacob
+
+
+6.  Let's play the "I Spy" game from when we were kids. I Spy 4 things wrong with this code. Please fix them.
+pub contract Test {
+
+    // Hint: There's nothing wrong here ;)
+    pub resource Jacob {
+        pub let rocks: Bool
+        init() {
+            self.rocks = true
+        }
+    }
+
+    pub fun createJacob(): Jacob { // there is 1 here
+        let myJacob = Jacob() // there are 2 here
+        return myJacob // there is 1 here
+    }
+
+Answer:
+    pub fun createJacob(): @Jacob { // there is 1 here: it's a resource so it needs @
+        let myJacob <- create Jacob() // there are 2 here: need the create keyword and the "move" operator
+        return @myJacob // there is 1 here:  it's a resource, so it needs @
+    }
+
+}
+
+---------------------  DAY 2 -----(done)-------------------------------
+
+1.  Write your own smart contract that contains two state variables: an array of resources, and a dictionary of resources. Add functions to remove and add to each of them. They must be different from the examples above.
+
+access(all) contract CatStuff {
+  pub resource Cat{
+      pub var name: String
+      init( n:String ){
+        self.name = n;
+      }
+  }
+  pub var catarray : @[Cat]
+  pub var catdict : @{ String: Cat}
+
+  init(){
+    self.catarray <- []
+    self.catdict <- {} 
+  }
+
+  pub fun add_array( cat: @Cat ){ 
+    self.catarray.append( <- cat )
+  }
+  pub fun add_dict( cat:@Cat ){
+    self.catdict[ cat.name ] <-! cat
+  }
+}
+
+
+---------------------  DAY 3 -----(done)--------------------------------
+
+1.  Define your own contract that stores a dictionary of resources. Add a function to get a reference to one of the resources in the dictionary.
+
+    access(all) contract FishTank {
+      pub resource fish {
+          pub var name:String
+          pub var count: Int
+          init( _name:String, n:Int ){
+            self.name = _name
+            self.count = n
+          }
+      }
+
+      pub var typecount: @{ String: fish }
+      init(){
+        self.typecount <- {}
+        self.typecount[ "guppy" ] <-! create fish( _name:"guppy", n:10 )
+      }
+
+      pub fun getFish( name:String ) : &fish {
+        return &self.typecount[ name ] as &fish
+      }
+    }
+
+
+
+2.  Create a script that reads information from that resource using the reference from the function you defined in part 1.
+
+
+    import FishTank from 0x04
+    pub fun main(): Int {
+      let guppy = FishTank.getFish( name:"guppy" )
+      return guppy.count
+    }
+
+
+
+3.  Explain, in your own words, why references can be useful in Cadence.
+
+    References make it possible to decentralize asset management, storing assets in individual user wallets instead of centralized on-chain ledgers as in ERC-20 and ERC-721 contracts. 
+    They are super-useful for providing security around assets of value such as NFTs or FTs, since they make it hard to duplicate them or to lose or accidentally destroy them.
+
+
+---------------------  DAY 4 ----(done)---------------------------------
+
+Q1.  Explain, in your own words, the 2 things resource interfaces are used for:
+
+    a.)  Ensuring compliance with defined requirements;
+    b.)  Restricting access to data and functions
+
+
+Q2.  Define your own contract. Make your own resource interface and a resource that implements the interface. Create 2 functions. In the 1st function, show an example of not restricting the type of the resource and accessing its content. In the 2nd function, show an example of restricting the type of the resource and NOT being able to access its content.
+
+    pub contract poodle_magic {
+
+        pub resource interface iPoodle {
+            pub var name: String
+            pub var strength: UInt64
+            pub var boldness: UInt64
+        } 
+
+        pub resource poodle: iPoodle {
+            pub var name: String
+            pub var strength: UInt64
+            pub var boldness: UInt64
+            pub var price: UInt64
+
+            init( n:String, str: UInt64, bold: UInt64, p:UInt64 ){
+                self.name = n
+                self.strength = str
+                self.boldness = bold
+                self.price = p
+            }
+        }
+
+        pub fun fullpoodle( ) {
+            let pdl: @poodle <- create poodle( n: "Thor", str: 64, bold: 100, p: 5000 )
+            log( pdl.name )
+            log( pdl.price )
+            destroy pdl
+        }
+        pub fun x_poodle( ){
+            let pdl: @poodle{iPoodle} <- create poodle( n: "Foxy", str: 20, bold: 75, p: 1000 )   // ERROR: "member of restricted type is not accessible: price"
+            log( pdl.name )
+            log( pdl.price )
+            destroy pdl
+        }
+    }
+
+
+        
+    import poodle_magic from 0x02
+    pub fun main(): Int {
+      poodle_magic.x_poodle()
+      return 1
+    }
+
+
+
+Q3.  How do we fix this:
+
+    There are 3 FIXes inserted below:
+
+pub contract Stuff {
+
+    pub struct interface ITest {
+      pub var greeting: String
+      pub var favouriteFruit: String
+      pub fun changeGreeting(newGreeting: String): String  // FIX 1:  add changeGreeting to the interface
+    }
+
+    // ERROR:
+    // `structure Stuff.Test does not conform 
+    // to structure interface Stuff.ITest`
+    pub struct Test: ITest {
+      pub var greeting: String
+      pub var favouriteFruit: String  // FIX 2:  add favoriteFruit so it conforms to the interface
+
+      pub fun changeGreeting(newGreeting: String): String {
+        self.greeting = newGreeting
+        return self.greeting // returns the new greeting
+      }
+
+      init() {
+        self.greeting = "Hello!"
+        self.favouriteFruit= "Banana"  // FIX 3:  add this to initialize fruit
+      }
+    }
+
+    pub fun fixThis() {
+      let test: Test{ITest} = Test()
+      let newGreeting = test.changeGreeting(newGreeting: "Bonjour!") // ERROR HERE: `member of restricted type is not accessible: changeGreeting`
+      log(newGreeting)
+    }
+}
+
+
+
+--------------------  DAY 5  ---(done)------------------------------
+
+1.  For today's quest, you will be looking at a contract and a script. You will be looking at 4 variables (a, b, c, d) and 3 functions (publicFunc, contractFunc, privateFunc) defined in SomeContract. In each AREA (1, 2, 3, and 4), I want you to do the following: for each variable (a, b, c, and d), tell me in which areas they can be read (read scope) and which areas they can be modified (write scope). For each function (publicFunc, contractFunc, and privateFunc), simply tell me where they can be called.
+
+Variable        a           b           c             d
+Area        1   r/w         r           r/w           r/w
+            2   r/w         r           r/w           -
+            3   r/w         r           r/w           -
+            4   r/w         r           -             -
+
+
+var a is pub(set), r/w everywhere
+var b is pub, read everywhere but not write
+var c is access(contract), so r/w everywhere but Area 4
+var d is access(self), so r/w only within the struct it's declared in
